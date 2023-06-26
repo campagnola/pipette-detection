@@ -1,3 +1,17 @@
+"""
+Martin notes, 26 June:
+
+    This will need to eventually handle different pitches, pull-shapes, magnifications and lighting conditions. Maybe
+    also yaws, but seeing as we know the expected yaw of any pipette in ACQ4, we could just rotate the live image to
+    match our model's training data, et voilà! If this eventually gets a reasonably accurate detector, then teaching
+    it to detect at all yaws would be useful to allow multiple pipettes to be identified simultaneously.
+
+    "Difficulty" is not objectively that. While adding noise will make images harder to parse, other factors (such as
+    z distance, tip out of FoV, or just total pixels impacted by pipette) also play a role. The combination of all
+    these factors could possibly be used to quantify how accurate a pipette-detection could be. We could maybe help
+    this by building toward using a detection mask + semantic segmentation, rather than just tip position.
+
+"""
 import argparse
 import os
 import threading
