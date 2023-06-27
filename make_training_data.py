@@ -63,7 +63,7 @@ class PipetteTemplate:
 
 
 
-def make_noise(amplitudes, radii, shape):
+def make_noise(amplitudes, radii, shape) -> np.ndarray:
     """Return a gaussian-smoothed noise image.
     """
     shape = np.array(shape)
@@ -89,7 +89,7 @@ def make_noise(amplitudes, radii, shape):
         total += n
     return total
 
-def make_structured_noise(shape, edge, edge_frac, noise_radii, noise_amplitudes, sin_shift=0.1, noise_exponent=2):
+def make_structured_noise(shape, edge, edge_frac, noise_radii, noise_amplitudes, sin_shift=0.1, noise_exponent=2) -> np.ndarray:
     shape = np.array(shape, dtype=int)
     edge = np.array(edge, dtype=int)
     noise = make_noise(noise_amplitudes, noise_radii, shape+np.abs(edge)) 
@@ -104,7 +104,7 @@ def make_structured_noise(shape, edge, edge_frac, noise_radii, noise_amplitudes,
     return noise
 
 
-def make_training_data(shape:Tuple[float], template:PipetteTemplate, difficulty:float):
+def make_training_data(shape:Tuple[float], template:PipetteTemplate, difficulty:float) -> Tuple[np.ndarray, Tuple[float, int, int], float]:
     radius = shape[0] * (0.3 + difficulty * 0.1)
     center = np.array(shape) // 2
     pip_pos = [
@@ -118,7 +118,7 @@ def make_training_data(shape:Tuple[float], template:PipetteTemplate, difficulty:
 
     # structured noise to look like cells / neuropil    
     str_noise_len = 3
-    image = make_structured_noise(
+    base_image = make_structured_noise(
         shape=shape,
         edge=np.random.normal(size=2, scale=3), 
         edge_frac=np.random.normal(scale=0.2, loc=1), 
@@ -129,7 +129,7 @@ def make_training_data(shape:Tuple[float], template:PipetteTemplate, difficulty:
     )
 
     # unstructured noise at various scales
-    image += make_noise(
+    base_image += make_noise(
         shape=shape,
         amplitudes=10**np.random.normal(size=3, loc=noise_amp, scale=0.2),
         radii=[
@@ -139,26 +139,31 @@ def make_training_data(shape:Tuple[float], template:PipetteTemplate, difficulty:
         ],
     )
 
+    image = base_image.copy()
     # add in pipette template
     z_difficulty = difficulty**0.5
     z_range = (template.z.min() * z_difficulty, template.z.max() * z_difficulty)
     z_target = np.random.random() * (z_range[1] - z_range[0]) + z_range[0]
     z_um = template.add_to_image(z=z_target, dst_arr=image, pip_pos=pip_pos, amp=10**np.random.normal(loc=0.2, scale=0.2))
 
+    percent_diff = np.sum(np.abs(base_image - image)) / (shape[0] * shape[1])
+    if percent_diff < 0.02:  # too imperceptible; try again
+        return make_training_data(shape, template, difficulty)
+
     # normalize image
     image -= image.min()
     image /= image.max()
 
-    return image, (z_um, pip_pos[0], pip_pos[1])
+    return image, (z_um, pip_pos[0], pip_pos[1]), percent_diff
 
 
-def save_training_data(path, img_count, image, pip_pos):
+def save_training_data(path, img_count, image, pip_pos, percent_diff: float):
     assert os.path.exists(path), f"'{path}' directory expected to exist"
     image = Image.fromarray(image*255).convert('RGB')
     img_file = os.path.join(path, f'{img_count:05d}.jpg')
     image.save(img_file)
     with open(os.path.join(path, 'pos.csv'), 'a') as pos_fh:
-        pos_fh.write(f'{img_file},{pip_pos[0]:0.2f},{pip_pos[1]:d},{pip_pos[2]:d}\n')
+        pos_fh.write(f'{img_file},{pip_pos[0]:0.2f},{pip_pos[1]:d},{pip_pos[2]:d},{percent_diff:0.8f}\n')
 
 
 
