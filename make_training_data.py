@@ -158,7 +158,6 @@ def make_training_data(shape:Tuple[float], template:PipetteTemplate, difficulty:
 
 
 def save_training_data(path, img_count, image, pip_pos, percent_diff: float):
-    assert os.path.exists(path), f"'{path}' directory expected to exist"
     image = Image.fromarray(image*255).convert('RGB')
     img_file = os.path.join(path, f'{img_count:05d}.jpg')
     image.save(img_file)
@@ -191,6 +190,15 @@ if __name__ == '__main__':
     parser.add_argument('--size', default=1, type=int, help='number of training examples to generate')
     parser.add_argument('--difficulty', default=0, type=float, help='difficulty (0-1) controls signal/noise ratio, pipette focus and positioning')
     args = parser.parse_args()
+
+    if os.path.exists(args.path):
+        print(f"DELETING previously generated contents of {args.path}", end="")
+        for fn in os.listdir(args.path):
+            if os.path.basename(fn) == "pos.csv" or os.path.splitext(fn)[0] == ".jpg":
+                os.unlink(os.path.join(args.path, fn))
+        print(" ... done.")
+    else:
+        os.mkdir(args.path)
 
     training_data_queue = Queue(20)
     training_data_args = {
