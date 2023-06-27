@@ -62,7 +62,6 @@ class PipetteTemplate:
         return template_z_um
 
 
-
 def make_noise(amplitudes, radii, shape) -> np.ndarray:
     """Return a gaussian-smoothed noise image.
     """
@@ -89,6 +88,7 @@ def make_noise(amplitudes, radii, shape) -> np.ndarray:
         total += n
     return total
 
+
 def make_structured_noise(shape, edge, edge_frac, noise_radii, noise_amplitudes, sin_shift=0.1, noise_exponent=2) -> np.ndarray:
     shape = np.array(shape, dtype=int)
     edge = np.array(edge, dtype=int)
@@ -104,7 +104,7 @@ def make_structured_noise(shape, edge, edge_frac, noise_radii, noise_amplitudes,
     return noise
 
 
-def make_training_data(shape:Tuple[float], template:PipetteTemplate, difficulty:float) -> Tuple[np.ndarray, Tuple[float, int, int], float]:
+def make_training_data(shape:Tuple[int, int], template:PipetteTemplate, difficulty:float) -> Tuple[np.ndarray, Tuple[float, int, int], float]:
     radius = shape[0] * (0.3 + difficulty * 0.1)
     center = np.array(shape) // 2
     pip_pos = [
