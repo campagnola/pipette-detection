@@ -68,11 +68,11 @@ class TrainingData:
 
 
 class Normalizer:
-    def __init__(self, range):
-        range = np.array(range)
-        diff = range[1] - range[0]
+    def __init__(self, possible_range):
+        possible_range = np.array(possible_range)
+        diff = possible_range[1] - possible_range[0]
         self.scale = 2 / diff
-        self.offset = range[0] + diff / 2
+        self.offset = possible_range[0] + diff / 2
 
     def normalize(self, x):
         return (x - self.offset) * self.scale
