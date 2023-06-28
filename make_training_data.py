@@ -194,7 +194,7 @@ if __name__ == '__main__':
     if os.path.exists(args.path):
         print(f"DELETING previously generated contents of {args.path}", end="")
         for fn in os.listdir(args.path):
-            if os.path.basename(fn) == "pos.csv" or os.path.splitext(fn)[0] == ".jpg":
+            if os.path.basename(fn) == "pos.csv" or os.path.splitext(fn)[-1] == ".jpg":
                 os.unlink(os.path.join(args.path, fn))
         print(" ... done.")
     else:
