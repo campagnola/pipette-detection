@@ -7,6 +7,7 @@ class TrainingData:
     def __init__(self, data_path=None, output_norm=None):
         self.data_path = data_path
         self.output_norm = output_norm
+        self.last_batch = None
 
         if data_path is not None:
             self.load(data_path)
@@ -16,7 +17,7 @@ class TrainingData:
         fh = open(os.path.join(data_path, 'pos.csv'))
         for line in fh.readlines():
             img_file, z, row, col = line.split(',')
-            self.index.append((img_file, float(z), float(row), float(col)))
+            self.index.append((os.path.join(data_path, img_file), float(z), float(row), float(col)))
         self.image_shape = self[0][0].shape
 
     def __len__(self):
@@ -48,8 +49,8 @@ class TrainingData:
                 next_data = preloader.get_next()
                 if next_data is None:
                     return
-                img, pos = next_data
-                yield img, pos / self.image_shape[0]
+                self.last_batch = next_data
+                yield next_data
         finally:
             preloader.close()
 
@@ -107,6 +108,6 @@ class Preloader:
         self.queue.put(None)
 
     def get_next(self):
-        if self.queue.empty():
-            print("Warning: preloader queue is empty (this can slow down training)")
+        # if self.queue.empty():
+        #     print("Warning: preloader queue is empty (this can slow down training)")
         return self.queue.get()

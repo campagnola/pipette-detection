@@ -8,6 +8,8 @@ dependencies:
     - numpy
     - scipy
     - matplotlib
-    - jupyter
     - tqdm
     - tensorflow
+    - jupyter
+    - jupyter-client==7.3.2  # latest 8.0.2 has problems: https://discourse.jupyter.org/t/jupyter-notebook-zmq-message-arrived-on-closed-channel-error/17869/7
+    - tornado==6.1
